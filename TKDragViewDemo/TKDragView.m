@@ -1,0 +1,883 @@
+//
+//  TKDragView.m
+//  Retail Incentive
+//
+//  Created by Mapedd on 11-05-14.
+//  Copyright 2011 Tomasz Kuzma. All rights reserved.
+//
+
+#import "TKDragView.h"
+
+#include <mach/mach_time.h>
+#include <stdint.h>
+
+#define SWAP_TO_START_DURATION .24f
+
+#define SWAP_TO_END_DURATION   .24f
+
+#define VELOCITY_PARAMETER 1000.0f
+
+NSValue * TKCGRectValue(CGRect rect){
+    return [NSValue valueWithCGRect:rect];
+}
+
+CGRect TKCGRectFromValue(NSValue *value){
+    return [value CGRectValue];
+}
+
+CGPoint TKCGRectCenter(CGRect rect){
+    return CGPointMake(CGRectGetMidX(rect), CGRectGetMidY(rect));
+}
+
+CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
+    CGPoint p1 = TKCGRectCenter(rect1);
+    CGPoint p2 = TKCGRectCenter(rect2);
+    return sqrtf(powf(p1.x - p2.x, 2) + powf(p1.y - p2.y, 2));
+}
+
+
+@interface TKDragView ()
+
+- (BOOL)didEnterGoodFrameWithPoint:(CGPoint)point;
+
+- (BOOL)didEnterBadFrameWithPoint:(CGPoint)point;
+
+- (BOOL)didEnterStartFrameWithPoint:(CGPoint)point;
+
+
+- (NSInteger)badFrameIndexWithPoint:(CGPoint)point;
+
+- (NSInteger)goodFrameIndexWithPoint:(CGPoint)point;
+
+
+- (void)panBegan:(UIPanGestureRecognizer *)gestureRecognizer;
+
+- (void)panMoved:(UIPanGestureRecognizer *)gestureRecognizer;
+
+- (void)panEnded:(UIPanGestureRecognizer *)gestureRecognizer;
+
+
+- (NSTimeInterval)swapToStartAnimationDuration;
+
+- (NSTimeInterval)swapToEndAnimationDurationWithFrame:(CGRect)endFrame;
+
+
+@end
+
+
+@implementation TKDragView
+
+@synthesize imageView = imageView_;
+
+@synthesize goodFramesArray = goodFramesArray_;
+
+@synthesize badFramesArray = badFramesArray_;
+
+@synthesize startFrame = startFrame_;
+
+@synthesize isDragging = _sDragging_;
+
+@synthesize isAnimating = isAnimating_;
+
+@synthesize isOverBadFrame = isOverBadFrame_;
+
+@synthesize isOverEndFrame = isOverEndFrame_;
+
+@synthesize isAtEndFrame = isAtEndFrame_;
+
+@synthesize isAtStartFrame = isAtStartFrame_;
+
+@synthesize canDragFromEndPosition = canDragFromEndPosition_;
+
+@synthesize canSwapToStartPosition = canSwapToStartPosition_;
+
+@synthesize canDragMultipleDragViewsAtOnce = canDragMultipleDragViewsAtOnce_;
+
+@synthesize canUseSameEndFrameManyTimes = canUseSameEndFrameManyTimes_;
+
+@synthesize shouldStickToEndFrame = shouldStickToEndFrame_;
+
+@synthesize usedVelocity = _usedVelocity;
+
+@synthesize delegate = delegate_;
+
+#pragma mark - Initializers
+
+- (id)initWithImage:(UIImage *)image 
+         startFrame:(CGRect)startFrame 
+           endFrame:(CGRect)endFrame{
+    
+    self = [self  initWithImage:image
+                     startFrame:startFrame 
+                     goodFrames:[NSArray arrayWithObject:[NSValue valueWithCGRect:endFrame]]
+                      badFrames:nil
+                    andDelegate:nil];
+    
+    return self;
+}
+
+- (id)initWithImage:(UIImage *)image
+         startFrame:(CGRect)startFrame 
+           endFrame:(CGRect)endFrame
+        andDelegate:(id<TKDragViewDelegate>) delegate{
+    
+
+    self = [self initWithImage:image 
+                    startFrame:startFrame
+                    goodFrames:[NSArray arrayWithObject:[NSValue valueWithCGRect:endFrame]] 
+                     badFrames:nil
+                   andDelegate:delegate];
+    
+    return self;
+}
+
+- (id)initWithImage:(UIImage *)image
+         startFrame:(CGRect)startFrame 
+         goodFrames:(NSArray *)goodFrames
+          badFrames:(NSArray *)badFrames
+        andDelegate:(id<TKDragViewDelegate>) delegate{
+    
+    self = [super initWithFrame:startFrame];
+    
+    if(!self) return nil;
+    
+    self.goodFramesArray = goodFrames;
+    
+    self.badFramesArray = badFrames;
+    
+    self.startFrame = startFrame;
+    
+    self.imageView = [[UIImageView alloc] initWithFrame:self.bounds];
+    [self.imageView setAutoresizingMask:(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight)];
+    [self.imageView setImage:image];
+    [self addSubview:self.imageView];
+    
+    
+    UIPanGestureRecognizer* panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panDetected:)];
+    [panGesture setMaximumNumberOfTouches:2];
+    panGesture.delaysTouchesEnded = NO;
+    [panGesture setDelegate:self];
+    [self addGestureRecognizer:panGesture];
+    
+    
+    self.userInteractionEnabled = YES;
+    self.opaque = NO;
+    self.backgroundColor = [UIColor clearColor];
+    self.exclusiveTouch = NO;
+    self.multipleTouchEnabled = NO;
+    
+    self.usedVelocity = kTKDragConstantTime;
+    self.isDragging =       NO;
+    self.isAnimating =      NO;
+    self.isOverBadFrame =   NO;
+    self.isOverEndFrame =   NO;
+    self.isAtEndFrame =     NO;
+    self.shouldStickToEndFrame = NO;
+    self.isAtStartFrame =   YES;
+    self.canDragFromEndPosition = YES;
+    
+    canUseSameEndFrameManyTimes_ = YES;
+    canDragMultipleDragViewsAtOnce_ = YES;
+    
+    canSwapToStartPosition_ = YES;
+    isOverStartFrame_ = YES;
+    
+    isAddedToManager_ = NO;
+    
+    currentBadFrameIndex_ = currentGoodFrameIndex_ = -1;
+    
+    startLocation = CGPointZero;
+    
+    self.delegate = delegate;
+    
+    return self;
+}
+
+#pragma mark - Memory
+
+- (void)dealloc{
+    delegate_ = nil;
+}
+
+#pragma mark - Setters
+
+- (void)setDelegate:(id<TKDragViewDelegate>)delegate{
+    if (delegate != delegate_) {
+        delegate_ = delegate;
+    
+        delegateFlags_.dragViewDidStartDragging     = [delegate_ respondsToSelector:@selector(dragViewDidStartDragging:)];
+        delegateFlags_.dragViewDidEndDragging       = [delegate_ respondsToSelector:@selector(dragViewDidEndDragging:)];
+        
+        delegateFlags_.dragViewDidEnterStartFrame   = [delegate_ respondsToSelector:@selector(dragViewDidEnterStartFrame:)];
+        delegateFlags_.dragViewDidLeaveStartFrame   = [delegate_ respondsToSelector:@selector(dragViewDidLeaveStartFrame:)];
+        
+        delegateFlags_.dragViewDidEnterGoodFrame    = [delegate_ respondsToSelector:@selector(dragViewDidEnterGoodFrame:atIndex:)];            
+        delegateFlags_.dragViewDidLeaveGoodFrame    = [delegate_ respondsToSelector:@selector(dragViewDidLeaveGoodFrame:atIndex:)];
+        
+        delegateFlags_.dragViewDidEnterBadFrame     = [delegate_ respondsToSelector:@selector(dragViewDidEnterBadFrame:atIndex:)];
+        delegateFlags_.dragViewDidLeaveBadFrame     = [delegate_ respondsToSelector:@selector(dragViewDidLeaveBadFrame:atIndex:)];
+        
+        delegateFlags_.dragViewWillSwapToEndFrame = [delegate_ respondsToSelector:@selector(dragViewWillSwapToEndFrame:atIndex:)];
+        delegateFlags_.dragViewDidSwapToEndFrame    = [delegate_ respondsToSelector:@selector(dragViewDidSwapToEndFrame:atIndex:)];
+        
+        delegateFlags_.dragViewWillSwapToStartFrame = [delegate_ respondsToSelector:@selector(dragViewWillSwapToStartFrame:)];
+        delegateFlags_.dragViewDidSwapToStartFrame  = [delegate_ respondsToSelector:@selector(dragViewDidSwapToStartFrame:)];
+        
+        delegateFlags_.dragViewCanAnimateToEndFrame = [delegate_ respondsToSelector:@selector(dragView:canAnimateToEndFrameWithIndex:)];
+    }
+}
+
+- (void)setCanUseSameEndFrameManyTimes:(BOOL)canUseSameEndFrameManyTimes{
+    canUseSameEndFrameManyTimes_ = canUseSameEndFrameManyTimes;
+    
+    if (!canUseSameEndFrameManyTimes_ && !isAddedToManager_) {
+        [[TKDragManager manager] addDragView:self];
+        isAddedToManager_ = YES;
+    }
+    else if(canUseSameEndFrameManyTimes_){
+        [[TKDragManager manager] removeDragView:self];
+        isAddedToManager_ = NO;
+    }
+}
+
+- (void)setCanDragMultipleDragViewsAtOnce:(BOOL)canDragMultipleDragViewsAtOnce{
+    canDragMultipleDragViewsAtOnce_ = canDragMultipleDragViewsAtOnce;
+    
+    if (canDragMultipleDragViewsAtOnce) {
+        [[TKDragManager manager] dragViewDidEndDragging:self];
+    }
+}
+
+#pragma mark - Gesture handling
+
+- (void)panDetected:(UIPanGestureRecognizer*)gestureRecognizer{
+    switch ([gestureRecognizer state]) {
+        case UIGestureRecognizerStateBegan:
+            [self panBegan:gestureRecognizer];
+            break;
+        case UIGestureRecognizerStateChanged:
+            [self panMoved:gestureRecognizer];
+            break;
+        case UIGestureRecognizerStateEnded:
+            [self panEnded:gestureRecognizer];
+            break;
+        default:
+            break;
+    }
+}
+
+- (void)panBegan:(UIPanGestureRecognizer*)gestureRecognizer{
+    
+    if (!canDragMultipleDragViewsAtOnce_) {
+        if (![[TKDragManager manager] dragViewCanStartDragging:self]) {
+            return;
+        }
+    }
+    
+    
+    
+    if (isAtEndFrame_ && !canDragFromEndPosition_) {
+        return;
+    }
+    
+	if (!isDragging_ && !isAnimating_) {
+        
+        isDragging_ = YES;
+
+        CGPoint pt = [gestureRecognizer locationInView:self];
+    
+        startLocation = pt;
+    
+        [[self superview] bringSubviewToFront:self];
+
+
+        if (delegateFlags_.dragViewDidStartDragging) {
+            [self.delegate dragViewDidStartDragging:self];
+        }
+
+    }
+}
+
+- (void)panMoved:(UIPanGestureRecognizer*)gestureRecognizer{
+    
+    if(!isDragging_)
+        return;
+    
+        
+    CGPoint pt = [gestureRecognizer locationInView:self];
+    CGPoint translation = [gestureRecognizer translationInView:[self superview]];
+    [self setCenter:CGPointMake([self center].x + translation.x, [self center].y + translation.y)];
+    [gestureRecognizer setTranslation:CGPointZero inView:[self superview]];
+    
+    // Is over start frame
+    
+    BOOL isOverStartFrame = [self didEnterStartFrameWithPoint:pt];
+    
+    if (!isOverStartFrame_ && isOverStartFrame) {
+        
+        if (delegateFlags_.dragViewDidEnterStartFrame)
+            [self.delegate dragViewDidEnterStartFrame:self];
+        isOverStartFrame_ = YES;
+    }
+    else if(isOverStartFrame_ && !isOverStartFrame){
+        
+        if (delegateFlags_.dragViewDidLeaveStartFrame)
+            [self.delegate dragViewDidLeaveStartFrame:self];
+        isOverStartFrame_ = NO;
+    }
+    
+    
+    
+    // Is over good or bad frame?
+    
+    NSInteger goodFrameIndex = [self goodFrameIndexWithPoint:pt];
+    NSInteger badFrameIndex = [self badFrameIndexWithPoint:pt];
+    
+    
+    // Entered new good frame
+    if (goodFrameIndex >= 0 && !isOverEndFrame_) {
+        
+        if (delegateFlags_.dragViewDidEnterGoodFrame) {
+            [self.delegate dragViewDidEnterGoodFrame:self atIndex:goodFrameIndex];
+        }
+        
+        currentGoodFrameIndex_ = goodFrameIndex;
+        isOverEndFrame_ = YES;
+    }
+    
+    
+    // Did leave good frame
+    if (isOverEndFrame_ && goodFrameIndex < 0) {
+        
+        if (delegateFlags_.dragViewDidLeaveGoodFrame) {
+            [self.delegate dragViewDidLeaveGoodFrame:self atIndex:currentGoodFrameIndex_];
+            
+        }
+        
+        if(!canUseSameEndFrameManyTimes_){
+            CGRect goodFrame = TKCGRectFromValue([self.goodFramesArray objectAtIndex:currentGoodFrameIndex_]);
+            [[TKDragManager manager] dragView:self didLeaveEndFrame:goodFrame];
+        }
+        
+        currentGoodFrameIndex_ = -1;
+        isOverEndFrame_ = NO;
+        isAtEndFrame_ = NO;
+        
+    }
+    
+    // Did switch from one good from to another
+    
+    if (isOverEndFrame_ && goodFrameIndex != currentGoodFrameIndex_) {
+        
+        if (delegateFlags_.dragViewDidLeaveGoodFrame) {
+            [self.delegate dragViewDidLeaveGoodFrame:self atIndex:currentGoodFrameIndex_];
+            
+        }
+        
+        if (!canUseSameEndFrameManyTimes_ && isAtEndFrame_) {
+            CGRect rect = TKCGRectFromValue([self.goodFramesArray objectAtIndex:currentGoodFrameIndex_]);
+            [[TKDragManager manager] dragView:self didLeaveEndFrame:rect];
+        }
+        
+        if (delegateFlags_.dragViewDidEnterGoodFrame) {
+            [self.delegate dragViewDidEnterGoodFrame:self atIndex:goodFrameIndex];
+        }
+        
+        currentGoodFrameIndex_ = goodFrameIndex;
+        isAtEndFrame_ = NO;
+    }
+    
+    
+    // Is over bad frame
+    
+    if(badFrameIndex >= 0 && !isOverBadFrame_) {
+        
+        if (delegateFlags_.dragViewDidEnterBadFrame)
+            [self.delegate dragViewDidEnterBadFrame:self atIndex:badFrameIndex];
+        
+        isOverBadFrame_ = YES;
+        currentBadFrameIndex_ = badFrameIndex;
+    }
+    
+    if (isOverBadFrame_ && badFrameIndex < 0) {
+        if (delegateFlags_.dragViewDidLeaveBadFrame) 
+            [self.delegate dragViewDidLeaveBadFrame:self atIndex:currentBadFrameIndex_];
+        
+        isOverBadFrame_ = NO;
+        currentBadFrameIndex_ = -1;
+    }
+    
+    
+    // Did switch bad frames
+    if (isOverBadFrame_ && badFrameIndex != currentBadFrameIndex_){
+        if (delegateFlags_.dragViewDidLeaveBadFrame) 
+            [self.delegate dragViewDidLeaveBadFrame:self atIndex:currentBadFrameIndex_];
+        
+        if (delegateFlags_.dragViewDidEnterBadFrame)
+            [self.delegate dragViewDidEnterBadFrame:self atIndex:badFrameIndex];
+        
+        currentBadFrameIndex_ = badFrameIndex;
+
+    }
+    
+}
+
+- (void)panEnded:(UIPanGestureRecognizer*)gestureRecognizer{
+    
+    if (!isDragging_) 
+        return;
+    
+    isDragging_ = NO;
+    
+    if(!canDragMultipleDragViewsAtOnce_)
+        [[TKDragManager manager] dragViewDidEndDragging:self];
+    
+    if (delegateFlags_.dragViewDidEndDragging) {
+        [self.delegate dragViewDidEndDragging:self];
+    }
+
+    if (delegateFlags_.dragViewCanAnimateToEndFrame){
+        if (![self.delegate dragView:self canAnimateToEndFrameWithIndex:currentGoodFrameIndex_]){
+            [self swapToStartPosition];
+            return;
+        }
+    }
+    
+    if (isOverBadFrame_) {
+        if (delegateFlags_.dragViewDidLeaveBadFrame) 
+            [self.delegate dragViewDidLeaveBadFrame:self atIndex:currentBadFrameIndex_];
+    }
+            
+    if (isOverStartFrame_ && canSwapToStartPosition_) {
+        [self swapToStartPosition];
+    }
+    else{
+        NSLog(@"current good frame index  = %d", currentGoodFrameIndex_);
+        
+        
+        if (currentGoodFrameIndex_ >= 0) {
+            [self swapToEndPositionAtIndex:currentGoodFrameIndex_];
+        }
+        else{
+            if (isOverEndFrame_ && !canUseSameEndFrameManyTimes_) {
+                CGRect goodFrame = TKCGRectFromValue([self.goodFramesArray objectAtIndex:currentGoodFrameIndex_]);
+                [[TKDragManager manager] dragView:self didLeaveEndFrame:goodFrame];
+            }
+            
+            [self swapToStartPosition];
+        }
+    }
+    
+    startLocation = CGPointZero;
+    
+   
+}
+
+#pragma mark - Private
+
+- (BOOL)didEnterGoodFrameWithPoint:(CGPoint)point {
+    
+    if ([self goodFrameIndexWithPoint:point] >= 0) {
+        return YES;
+    }
+    else{
+        return NO;
+    }
+}
+
+- (BOOL)didEnterBadFrameWithPoint:(CGPoint)point {
+    
+    if ([self badFrameIndexWithPoint:point] >= 0) {
+        return YES;
+    }
+    else{
+        return NO;
+    }
+
+}
+    
+- (BOOL)didEnterStartFrameWithPoint:(CGPoint)point {
+    
+    CGPoint touchInSuperview = [self convertPoint:point toView:[self superview]];
+    
+    return CGRectContainsPoint(startFrame_,touchInSuperview);
+}
+
+- (NSInteger)badFrameIndexWithPoint:(CGPoint)point{
+    
+    CGPoint touchInSuperview = [self convertPoint:point toView:[self superview]];
+    
+    NSInteger index = -1;
+    
+    
+    
+    for (int i=0;i<[self.badFramesArray count];i++) {
+        CGRect badFrame = [[self.badFramesArray objectAtIndex:i] CGRectValue];
+            if (CGRectContainsPoint(badFrame, touchInSuperview))
+               index = i;
+    }
+    
+    
+    return index;
+}
+
+- (NSInteger)goodFrameIndexWithPoint:(CGPoint)point{
+    
+    CGPoint touchInSuperview = [self convertPoint:point toView:[self superview]];
+    
+    NSInteger index = -1;
+    
+    for (int i=0;i<[self.goodFramesArray count];i++) {
+        CGRect goodFrame = [[self.goodFramesArray objectAtIndex:i] CGRectValue];
+        if (CGRectContainsPoint(goodFrame, touchInSuperview))
+            index = i;
+    }
+
+    return index;
+}
+
+- (NSTimeInterval)swapToStartAnimationDuration{
+    if (self.usedVelocity == kTKDragConstantTime) {
+        return SWAP_TO_START_DURATION;
+    }
+    else{
+        // kTKDragConstantVelocity
+        return TKDistanceBetweenFrames(self.frame, self.startFrame)/VELOCITY_PARAMETER;
+    }
+        
+}
+
+- (NSTimeInterval)swapToEndAnimationDurationWithFrame:(CGRect)endFrame{
+    if (self.usedVelocity == kTKDragConstantTime) {
+        return SWAP_TO_END_DURATION;
+    }
+    else{
+        // kTKDragConstantVelocity
+        return TKDistanceBetweenFrames(self.frame, endFrame)/VELOCITY_PARAMETER;
+    }
+}
+
+#pragma mark - Public
+
+- (void)swapToStartPosition{
+    
+    isAnimating_ = YES;
+    
+    if (delegateFlags_.dragViewWillSwapToStartFrame)
+        [self.delegate dragViewWillSwapToStartFrame:self];
+    
+    
+    
+    [UIView animateWithDuration:[self swapToStartAnimationDuration]
+                          delay:0. 
+                        options:UIViewAnimationOptionCurveEaseIn
+                     animations:^{
+                        self.frame = self.startFrame; 
+                     } 
+                     completion:^(BOOL finished) {
+                         if (finished) {
+                             if (delegateFlags_.dragViewDidSwapToStartFrame)
+                                 [self.delegate dragViewDidSwapToStartFrame:self];
+                             
+                             isAnimating_ = NO;
+                             isAtStartFrame_ = YES;
+                             isAtEndFrame_ = NO;
+                         }
+                     }];
+    
+    
+}
+
+- (void)swapToEndPositionAtIndex:(NSInteger)index{
+    
+    if (![self.goodFramesArray count]) return;
+    
+    CGRect endFrame = [[self.goodFramesArray objectAtIndex:index] CGRectValue];
+    
+    if (!canUseSameEndFrameManyTimes_) {
+        
+        if(![[TKDragManager manager] dragView:self wantSwapToEndFrame:endFrame]){
+//            if(delegateFlags_.dragViewDidLeaveGoodFrame){
+//                [self.delegate dragViewDidLeaveGoodFrame:self atIndex:index];
+//            }
+            return;
+        }
+    }
+    
+    isAnimating_ = YES;
+    
+    if (delegateFlags_.dragViewWillSwapToEndFrame) 
+        [self.delegate dragViewWillSwapToEndFrame:self atIndex:index];
+    
+    [UIView animateWithDuration:[self swapToEndAnimationDurationWithFrame:endFrame]
+                          delay:0.0f
+                        options:UIViewAnimationOptionCurveEaseIn
+                     animations:^{
+                         self.frame = endFrame;
+                     } 
+                     completion:^(BOOL finished) {
+                         if (finished) {
+                             if (delegateFlags_.dragViewDidSwapToEndFrame) 
+                                 [self.delegate dragViewDidSwapToEndFrame:self atIndex:index];
+                             
+                             isAnimating_ = NO;
+                             isAtEndFrame_ = YES;
+                             isAtStartFrame_ = NO;
+                             
+                         }
+                     }];
+}
+
+
+@end
+
+#pragma mark - TKDragManager
+
+@interface TKDragManager ()
+
+@property (nonatomic, strong) NSMutableArray *managerArray;
+
+@property (nonatomic, unsafe_unretained) TKDragView *currentDragView;
+
+@end
+
+
+@implementation TKDragManager
+
+@synthesize currentDragView = currentDragView_;
+
+@synthesize managerArray = managerArray_;
+
+static TKDragManager *manager; // it's a singleton, but how to relase it under ARC?
+
++ (TKDragManager *)manager{
+    if (!manager) {
+        manager = [[TKDragManager alloc] init];
+    }
+    
+    return manager;
+}
+
+- (id)init{
+    self = [super init];
+    
+    if(!self) return nil;
+    
+    self.managerArray = [NSMutableArray arrayWithCapacity:0];
+    self.currentDragView = nil;
+    
+    
+    return self;
+}
+
+- (void)addDragView:(TKDragView *)dragView{
+    
+    NSMutableArray *framesToAdd = [NSMutableArray arrayWithCapacity:0];
+    
+    
+    
+    if ([self.managerArray count]) {
+        
+            for (NSValue *dragViewValue in dragView.goodFramesArray) {
+                CGRect dragViewRect = TKCGRectFromValue(dragViewValue);
+                BOOL isInTheArray = NO;
+
+                for (TKOccupancyIndicator *ind in self.managerArray) {
+                    
+                    CGRect managerRect = ind.frame;
+                    
+                    if (CGRectEqualToRect(managerRect, dragViewRect)) {
+                        ind.count++;
+                        isInTheArray = YES;
+                        break;
+                    }
+                }            
+                
+                if (!isInTheArray) {
+                    [framesToAdd addObject:dragViewValue];
+                }
+                
+            }  
+        
+        /*for (TKOccupancyIndicator *ind in self.managerArray) {
+            
+            CGRect managerRect = ind.frame;
+            
+            
+            
+            
+            for (NSValue *dragViewValue in dragView.goodFramesArray) {
+                CGRect equalRect = CGRectZero;
+                BOOL alreadyInArray = NO;
+
+                CGRect dragViewRect = TKCGRectFromValue(dragViewValue);
+               
+                
+                if (CGRectEqualToRect(managerRect, dragViewRect)) {
+                    NSLog(@"%@ = %@ ", NSStringFromCGRect(managerRect),NSStringFromCGRect(dragViewRect));
+                    
+                    alreadyInArray = YES;
+                }
+                else{
+                    NSLog(@"%@ != %@ ", NSStringFromCGRect(managerRect),NSStringFromCGRect(dragViewRect));
+                    alreadyInArray = NO;
+                    equalRect = dragViewRect;
+                }
+                
+                if(alreadyInArray){
+                    ind.count ++;
+                }
+                else{
+                    if (!CGRectEqualToRect(CGRectZero, equalRect)) {
+                        [framesToAdd addObject:TKCGRectValue(equalRect)];
+                    }
+                }
+
+            }
+
+        }*/
+        
+
+    }
+    else{
+        [framesToAdd addObjectsFromArray:dragView.goodFramesArray];
+    }
+    
+    
+    for (int i = 0;i < [framesToAdd count]; i++) {
+        
+        CGRect frame = TKCGRectFromValue([framesToAdd objectAtIndex:i]);
+        
+        TKOccupancyIndicator *ind = [TKOccupancyIndicator indicatorWithFrame:frame];
+        
+        [self.managerArray addObject:ind];
+    }
+    
+    
+}
+
+- (void)removeDragView:(TKDragView *)dragView{
+    NSMutableArray *arrayToRemove = [NSMutableArray arrayWithCapacity:0];
+    
+    for (TKOccupancyIndicator *ind in self.managerArray) {
+        
+        CGRect rect = ind.frame;
+        
+        for (NSValue *value in dragView.goodFramesArray) {
+            
+            CGRect endFrame = TKCGRectFromValue(value);
+            
+            if (CGRectEqualToRect(rect, endFrame)) {
+                ind.count--;
+                
+                if (ind.count == 0) {
+                    [arrayToRemove addObject:ind];
+                }
+            }
+            
+        }
+        
+    }
+    
+    [self.managerArray removeObjectsInArray:arrayToRemove];
+    
+}
+
+- (BOOL)dragView:(TKDragView*)dragView wantSwapToEndFrame:(CGRect)endFrame{
+    
+//    NSLog(@"WANT SWAP TO END FRAME : %@ occupancy array : %@",NSStringFromCGRect(endFrame) ,self.managerArray);
+    
+    for (TKOccupancyIndicator *ind in self.managerArray) {
+        
+        CGRect frame = ind.frame;
+        
+        BOOL isTaken = !ind.isFree;
+                    
+        if (CGRectEqualToRect(endFrame, frame)) {
+            if (isTaken) {
+               NSLog(@"is taken");
+                [dragView swapToStartPosition];
+                return NO;
+            }
+            else{
+                NSLog(@"is free, marking as taken: %@ %@", NSStringFromCGRect(frame),NSStringFromCGRect(endFrame));
+                ind.isFree = NO;
+                return YES;
+            }
+        }
+    }
+    
+    return YES;
+}
+
+- (void)dragView:(TKDragView *)dragView didLeaveEndFrame:(CGRect)endFrame{
+    for (TKOccupancyIndicator *ind in self.managerArray) {
+        CGRect frame = ind.frame;
+        
+        if (CGRectEqualToRect(frame, endFrame) && dragView.isAtEndFrame) {
+            NSLog(@"did freed frame %@ %@j", NSStringFromCGRect(frame),NSStringFromCGRect(endFrame));
+            ind.isFree = YES;
+        }
+    }
+}
+
+- (BOOL)dragViewCanStartDragging:(TKDragView*)dragView{
+    if (!self.currentDragView) {
+        self.currentDragView = dragView;
+        return YES;
+    }
+    else{
+        return NO;
+    }
+}
+
+- (void)dragViewDidEndDragging:(TKDragView *)dragView{
+    if (self.currentDragView == dragView)
+        self.currentDragView = nil;
+}
+
+@end
+
+#pragma mark - TKOccupancyIndicator
+
+@implementation TKOccupancyIndicator 
+
+@synthesize frame = frame_;
+@synthesize count = count_;
+@synthesize isFree = isFree_;
+
+- (id)initWithFrame:(CGRect)frame{
+    self = [super init];
+    if(!self) return nil;
+    
+    self.frame = frame;
+    self.isFree = YES;
+    self.count = 1;
+    
+    return self;
+    
+}
+
++ (TKOccupancyIndicator *)indicatorWithFrame:(CGRect)frame{
+    return [[TKOccupancyIndicator alloc] initWithFrame:frame];
+}
+
+- (NSString *)description{
+    return [NSString stringWithFormat:@"TKOccupancyIndicator: frame: %@, count: %d, isFree: %@", 
+            NSStringFromCGRect(self.frame), self.count, self.isFree ? @"YES" : @"NO"];
+}
+
+@end
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,302 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0445A8B414B2416300F5417D /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0445A8B314B2416300F5417D /* UIKit.framework */; };
+		0445A8B614B2416300F5417D /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0445A8B514B2416300F5417D /* Foundation.framework */; };
+		0445A8B814B2416300F5417D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0445A8B714B2416300F5417D /* CoreGraphics.framework */; };
+		0445A8BE14B2416300F5417D /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0445A8BC14B2416300F5417D /* InfoPlist.strings */; };
+		0445A8C014B2416300F5417D /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0445A8BF14B2416300F5417D /* main.m */; };
+		0445A8C414B2416300F5417D /* TKAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0445A8C314B2416300F5417D /* TKAppDelegate.m */; };
+		0445A8C714B2416300F5417D /* TKViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0445A8C614B2416300F5417D /* TKViewController.m */; };
+		0445A8EB14B2430B00F5417D /* TKDragView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0445A8EA14B2430B00F5417D /* TKDragView.m */; };
+		0445A8ED14B2432B00F5417D /* tile_green.png in Resources */ = {isa = PBXBuildFile; fileRef = 0445A8EC14B2432B00F5417D /* tile_green.png */; };
+		044CBD6414C8D1830069480C /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 044CBD6314C8D1820069480C /* icon.png */; };
+		044CBD6714C8D1C90069480C /* icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 044CBD6614C8D1C90069480C /* icon@2x.png */; };
+		04F2BB0A14C8CDF10053C240 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = 04F2BB0914C8CDF10053C240 /* Default.png */; };
+		04F2BB0D14C8CE130053C240 /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 04F2BB0C14C8CE130053C240 /* Default@2x.png */; };
+		04F2BB0F14C8CE390053C240 /* Default-Portrait~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 04F2BB0E14C8CE390053C240 /* Default-Portrait~ipad.png */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0445A8AF14B2416300F5417D /* TKDragViewDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TKDragViewDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0445A8B314B2416300F5417D /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		0445A8B514B2416300F5417D /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		0445A8B714B2416300F5417D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		0445A8BB14B2416300F5417D /* TKDragViewDemo-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "TKDragViewDemo-Info.plist"; sourceTree = "<group>"; };
+		0445A8BD14B2416300F5417D /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		0445A8BF14B2416300F5417D /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		0445A8C114B2416300F5417D /* TKDragViewDemo-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TKDragViewDemo-Prefix.pch"; sourceTree = "<group>"; };
+		0445A8C214B2416300F5417D /* TKAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TKAppDelegate.h; sourceTree = "<group>"; };
+		0445A8C314B2416300F5417D /* TKAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TKAppDelegate.m; sourceTree = "<group>"; };
+		0445A8C514B2416300F5417D /* TKViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TKViewController.h; sourceTree = "<group>"; };
+		0445A8C614B2416300F5417D /* TKViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TKViewController.m; sourceTree = "<group>"; };
+		0445A8E914B2430B00F5417D /* TKDragView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TKDragView.h; sourceTree = "<group>"; };
+		0445A8EA14B2430B00F5417D /* TKDragView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TKDragView.m; sourceTree = "<group>"; };
+		0445A8EC14B2432B00F5417D /* tile_green.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = tile_green.png; sourceTree = "<group>"; };
+		044CBD6314C8D1820069480C /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
+		044CBD6614C8D1C90069480C /* icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon@2x.png"; sourceTree = "<group>"; };
+		04F2BB0914C8CDF10053C240 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
+		04F2BB0C14C8CE130053C240 /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
+		04F2BB0E14C8CE390053C240 /* Default-Portrait~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Portrait~ipad.png"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0445A8AC14B2416200F5417D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0445A8B414B2416300F5417D /* UIKit.framework in Frameworks */,
+				0445A8B614B2416300F5417D /* Foundation.framework in Frameworks */,
+				0445A8B814B2416300F5417D /* CoreGraphics.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0445A8A414B2416200F5417D = {
+			isa = PBXGroup;
+			children = (
+				044CBD6614C8D1C90069480C /* icon@2x.png */,
+				044CBD6314C8D1820069480C /* icon.png */,
+				04F2BB0E14C8CE390053C240 /* Default-Portrait~ipad.png */,
+				04F2BB0C14C8CE130053C240 /* Default@2x.png */,
+				04F2BB0914C8CDF10053C240 /* Default.png */,
+				0445A8B914B2416300F5417D /* TKDragViewDemo */,
+				0445A8B214B2416300F5417D /* Frameworks */,
+				0445A8B014B2416300F5417D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		0445A8B014B2416300F5417D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0445A8AF14B2416300F5417D /* TKDragViewDemo.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0445A8B214B2416300F5417D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0445A8B314B2416300F5417D /* UIKit.framework */,
+				0445A8B514B2416300F5417D /* Foundation.framework */,
+				0445A8B714B2416300F5417D /* CoreGraphics.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		0445A8B914B2416300F5417D /* TKDragViewDemo */ = {
+			isa = PBXGroup;
+			children = (
+				0445A8C214B2416300F5417D /* TKAppDelegate.h */,
+				0445A8C314B2416300F5417D /* TKAppDelegate.m */,
+				0445A8C514B2416300F5417D /* TKViewController.h */,
+				0445A8C614B2416300F5417D /* TKViewController.m */,
+				0445A8E914B2430B00F5417D /* TKDragView.h */,
+				0445A8EA14B2430B00F5417D /* TKDragView.m */,
+				0445A8BA14B2416300F5417D /* Supporting Files */,
+			);
+			path = TKDragViewDemo;
+			sourceTree = "<group>";
+		};
+		0445A8BA14B2416300F5417D /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				0445A8EC14B2432B00F5417D /* tile_green.png */,
+				0445A8BB14B2416300F5417D /* TKDragViewDemo-Info.plist */,
+				0445A8BC14B2416300F5417D /* InfoPlist.strings */,
+				0445A8BF14B2416300F5417D /* main.m */,
+				0445A8C114B2416300F5417D /* TKDragViewDemo-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0445A8AE14B2416200F5417D /* TKDragViewDemo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0445A8D014B2416300F5417D /* Build configuration list for PBXNativeTarget "TKDragViewDemo" */;
+			buildPhases = (
+				0445A8AB14B2416200F5417D /* Sources */,
+				0445A8AC14B2416200F5417D /* Frameworks */,
+				0445A8AD14B2416200F5417D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TKDragViewDemo;
+			productName = TKDragViewDemo;
+			productReference = 0445A8AF14B2416300F5417D /* TKDragViewDemo.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0445A8A614B2416200F5417D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0420;
+			};
+			buildConfigurationList = 0445A8A914B2416200F5417D /* Build configuration list for PBXProject "TKDragViewDemo" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 0445A8A414B2416200F5417D;
+			productRefGroup = 0445A8B014B2416300F5417D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0445A8AE14B2416200F5417D /* TKDragViewDemo */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		0445A8AD14B2416200F5417D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0445A8BE14B2416300F5417D /* InfoPlist.strings in Resources */,
+				0445A8ED14B2432B00F5417D /* tile_green.png in Resources */,
+				04F2BB0A14C8CDF10053C240 /* Default.png in Resources */,
+				04F2BB0D14C8CE130053C240 /* Default@2x.png in Resources */,
+				04F2BB0F14C8CE390053C240 /* Default-Portrait~ipad.png in Resources */,
+				044CBD6414C8D1830069480C /* icon.png in Resources */,
+				044CBD6714C8D1C90069480C /* icon@2x.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0445A8AB14B2416200F5417D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0445A8C014B2416300F5417D /* main.m in Sources */,
+				0445A8C414B2416300F5417D /* TKAppDelegate.m in Sources */,
+				0445A8C714B2416300F5417D /* TKViewController.m in Sources */,
+				0445A8EB14B2430B00F5417D /* TKDragView.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		0445A8BC14B2416300F5417D /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				0445A8BD14B2416300F5417D /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		0445A8CE14B2416300F5417D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		0445A8CF14B2416300F5417D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		0445A8D114B2416300F5417D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "TKDragViewDemo/TKDragViewDemo-Prefix.pch";
+				INFOPLIST_FILE = "TKDragViewDemo/TKDragViewDemo-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		0445A8D214B2416300F5417D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "TKDragViewDemo/TKDragViewDemo-Prefix.pch";
+				INFOPLIST_FILE = "TKDragViewDemo/TKDragViewDemo-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0445A8A914B2416200F5417D /* Build configuration list for PBXProject "TKDragViewDemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0445A8CE14B2416300F5417D /* Debug */,
+				0445A8CF14B2416300F5417D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0445A8D014B2416300F5417D /* Build configuration list for PBXNativeTarget "TKDragViewDemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0445A8D114B2416300F5417D /* Debug */,
+				0445A8D214B2416300F5417D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0445A8A614B2416200F5417D /* Project object */;
+}
