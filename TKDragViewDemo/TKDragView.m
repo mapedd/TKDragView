@@ -452,8 +452,7 @@ CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
         [self swapToStartPosition];
     }
     else{
-        NSLog(@"current good frame index  = %d", currentGoodFrameIndex_);
-        
+
         
         if (currentGoodFrameIndex_ >= 0) {
             [self swapToEndPositionAtIndex:currentGoodFrameIndex_];
@@ -594,15 +593,19 @@ CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
     
     CGRect endFrame = [[self.goodFramesArray objectAtIndex:index] CGRectValue];
     
-    if (!canUseSameEndFrameManyTimes_) {
-        
-        if(![[TKDragManager manager] dragView:self wantSwapToEndFrame:endFrame]){
-//            if(delegateFlags_.dragViewDidLeaveGoodFrame){
-//                [self.delegate dragViewDidLeaveGoodFrame:self atIndex:index];
-//            }
-            return;
+    
+    if (!isAtEndFrame_) {
+        if (!canUseSameEndFrameManyTimes_) {
+            
+            if(![[TKDragManager manager] dragView:self wantSwapToEndFrame:endFrame]){
+                if(delegateFlags_.dragViewDidLeaveGoodFrame){
+                    [self.delegate dragViewDidLeaveGoodFrame:self atIndex:index];
+                }
+                return;
+            }
         }
     }
+    
     
     isAnimating_ = YES;
     
@@ -698,45 +701,6 @@ static TKDragManager *manager; // it's a singleton, but how to relase it under A
                 }
                 
             }  
-        
-        /*for (TKOccupancyIndicator *ind in self.managerArray) {
-            
-            CGRect managerRect = ind.frame;
-            
-            
-            
-            
-            for (NSValue *dragViewValue in dragView.goodFramesArray) {
-                CGRect equalRect = CGRectZero;
-                BOOL alreadyInArray = NO;
-
-                CGRect dragViewRect = TKCGRectFromValue(dragViewValue);
-               
-                
-                if (CGRectEqualToRect(managerRect, dragViewRect)) {
-                    NSLog(@"%@ = %@ ", NSStringFromCGRect(managerRect),NSStringFromCGRect(dragViewRect));
-                    
-                    alreadyInArray = YES;
-                }
-                else{
-                    NSLog(@"%@ != %@ ", NSStringFromCGRect(managerRect),NSStringFromCGRect(dragViewRect));
-                    alreadyInArray = NO;
-                    equalRect = dragViewRect;
-                }
-                
-                if(alreadyInArray){
-                    ind.count ++;
-                }
-                else{
-                    if (!CGRectEqualToRect(CGRectZero, equalRect)) {
-                        [framesToAdd addObject:TKCGRectValue(equalRect)];
-                    }
-                }
-
-            }
-
-        }*/
-        
 
     }
     else{
@@ -785,7 +749,6 @@ static TKDragManager *manager; // it's a singleton, but how to relase it under A
 
 - (BOOL)dragView:(TKDragView*)dragView wantSwapToEndFrame:(CGRect)endFrame{
     
-//    NSLog(@"WANT SWAP TO END FRAME : %@ occupancy array : %@",NSStringFromCGRect(endFrame) ,self.managerArray);
     
     for (TKOccupancyIndicator *ind in self.managerArray) {
         
@@ -795,12 +758,10 @@ static TKDragManager *manager; // it's a singleton, but how to relase it under A
                     
         if (CGRectEqualToRect(endFrame, frame)) {
             if (isTaken) {
-               NSLog(@"is taken");
                 [dragView swapToStartPosition];
                 return NO;
             }
             else{
-                NSLog(@"is free, marking as taken: %@ %@", NSStringFromCGRect(frame),NSStringFromCGRect(endFrame));
                 ind.isFree = NO;
                 return YES;
             }
@@ -815,7 +776,6 @@ static TKDragManager *manager; // it's a singleton, but how to relase it under A
         CGRect frame = ind.frame;
         
         if (CGRectEqualToRect(frame, endFrame) && dragView.isAtEndFrame) {
-            NSLog(@"did freed frame %@ %@j", NSStringFromCGRect(frame),NSStringFromCGRect(endFrame));
             ind.isFree = YES;
         }
     }
