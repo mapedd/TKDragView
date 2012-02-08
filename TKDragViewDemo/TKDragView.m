@@ -447,26 +447,40 @@ CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
         if (delegateFlags_.dragViewDidLeaveBadFrame) 
             [self.delegate dragViewDidLeaveBadFrame:self atIndex:currentBadFrameIndex_];
     }
-            
-    if (isOverStartFrame_ && canSwapToStartPosition_) {
+    
+    
+    if (isAtEndFrame_ && !shouldStickToEndFrame_) {
+        if(!canUseSameEndFrameManyTimes_) {
+            CGRect goodFrame = TKCGRectFromValue([self.goodFramesArray objectAtIndex:currentGoodFrameIndex_]);
+            [[TKDragManager manager] dragView:self didLeaveEndFrame:goodFrame];
+        }
+        
+        if(delegateFlags_.dragViewDidLeaveGoodFrame)
+            [self.delegate dragViewDidLeaveGoodFrame:self atIndex:currentGoodFrameIndex_];
+        
         [self swapToStartPosition];
     }
     else{
-
-        
-        if (currentGoodFrameIndex_ >= 0) {
-            [self swapToEndPositionAtIndex:currentGoodFrameIndex_];
-        }
-        else{
-            if (isOverEndFrame_ && !canUseSameEndFrameManyTimes_) {
-                CGRect goodFrame = TKCGRectFromValue([self.goodFramesArray objectAtIndex:currentGoodFrameIndex_]);
-                [[TKDragManager manager] dragView:self didLeaveEndFrame:goodFrame];
-            }
-            
+        if (isOverStartFrame_ && canSwapToStartPosition_) {
             [self swapToStartPosition];
         }
+        else{
+            
+            
+            if (currentGoodFrameIndex_ >= 0) {
+                [self swapToEndPositionAtIndex:currentGoodFrameIndex_];
+            }
+            else{
+                if (isOverEndFrame_ && !canUseSameEndFrameManyTimes_) {
+                    CGRect goodFrame = TKCGRectFromValue([self.goodFramesArray objectAtIndex:currentGoodFrameIndex_]);
+                    [[TKDragManager manager] dragView:self didLeaveEndFrame:goodFrame];
+                }
+                
+                [self swapToStartPosition];
+            }
+        }
     }
-    
+
     startLocation = CGPointZero;
     
    
