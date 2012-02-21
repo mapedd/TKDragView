@@ -1,17 +1,15 @@
-<!--![AFNetworking](http://engineering.gowalla.com/AFNetworking/afnetworking-logo.png "AFNetworking")-->
-
 ## TKDragView
 
 Universal draggable view.
 
 Features:
 
-- Easy to use, flexible and universal solution if your user have to drag something:D
-- Built in manager:
-	- by setting one property user can't use the same target frame twice 
-	- by setting another property only one drag view can be dragged at the same moment
-
-## Documentation
+- easy to use, flexible and universal solution if your user have to drag something:D
+- built in manager
+- by setting one property user can't use the same target frame twice 
+- by setting another property only one drag view can be dragged at the same moment
+- two animation speed modes : constant time and and constant velocity
+- by setting one property drag view can be drag out of the current end frame or not
 
 
 ## Example Project
@@ -27,14 +25,20 @@ iOS 5.0
 
 TKDragView is compatible with Automatic Reference Counting, altough it's my first project with automatic memory management, so there might be some leaks.
 
+##Todo
+
+- Use UIViews instead of CGRects as a targets - will be easier to perform rotations, animations…
+
+- Non-ARC branch (is there a need for that?)
+
 
 ## Contact
 
 Tomek Kuźma (mapedd)
 
-- [Github](ttp://github.com/mapedd/ "Title")
-- [Twitter](ttp://twitter/mapedd/ "Title")
-- [Email](ttp://github.com/mapedd/ "Title")
+- [Github](http://github.com/mapedd/ "Title")
+- [Twitter](http://twitter/mapedd/ "Title")
+- [Email](mapedd@gmail.com/ "Title")
 
 
 ## License

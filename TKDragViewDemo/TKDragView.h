@@ -105,7 +105,7 @@ inline CGPoint TKCGRectCenter(CGRect rect);
 }
 
 /**
- UIImageView instance already added to as a subview with autoresizing mask set to flexible width and height
+ UIImageView instance already added to this view as a subview with autoresizing mask set to flexible width and height
  */
 
 @property (nonatomic, strong) UIImageView *imageView;
