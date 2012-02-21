@@ -1,3 +1,6 @@
+![image](http://dl.dropbox.com/u/450887/etched_text.png)
+
+
 ## TKDragView
 
 Universal draggable view.
