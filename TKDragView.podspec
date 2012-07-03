@@ -4,7 +4,7 @@ Pod::Spec.new do |s|
   s.platform = :ios
   s.summary  = 'Universal draggable view'
   s.homepage = 'https://github.com/mapedd/TKDragView'
-  s.author   = { 'mapedd' => 'https://github.com/mapedd' }
+  s.author   = { 'Tomek Kuźma' => 'mapedd@gmail.com' }
   s.source   = { :git => 'https://github.com/fictorial/TKDragView.git', :tag => '1.0.0' }
   s.description  = 'Universal draggable view'
   s.source_files = 'TKDragViewDemo/TKDragView.{h,m}'
