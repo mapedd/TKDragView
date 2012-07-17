@@ -1,10 +1,11 @@
-//
-//  TKDragView.h
-//  Retail Incentive
-//
-//  Created by Mapedd on 11-05-14.
-//  Copyright 2011 Tomasz Kuzma. All rights reserved.
-//
+//////////////////////////////////////////////////////////////////////////////////////
+//  TKDragView.h                                                                    //
+//  Universal Draggable View                                                        //
+//                                                                                  //
+//  Created by Mapedd on 11-05-14.                                                  //
+//  Modified by Mapedd on 12-07-17                                                  //
+//  Copyright 2011-2012 Tomasz Kuzma (mapedd@mapedd.com). All rights reserved.      //
+//////////////////////////////////////////////////////////////////////////////////////
 
 #import <UIKit/UIKit.h>
 
@@ -74,6 +75,10 @@ inline CGPoint TKCGRectCenter(CGRect rect);
     
     BOOL isAddedToManager_;
     
+    struct {
+        unsigned int wasInitializedWithViews:1;
+    } flags_;
+    
     NSInteger currentGoodFrameIndex_;
     
     NSInteger currentBadFrameIndex_;
@@ -125,6 +130,22 @@ inline CGPoint TKCGRectCenter(CGRect rect);
  */
 
 @property (nonatomic, strong) NSArray *badFramesArray;
+
+/**
+ Array to hold UIViews on which drag view can be placed
+ 
+ @seealso goodFramesArray, badFramesArray, badViewsArray
+ */
+
+@property (nonatomic, strong) NSArray *goodViewsArray;
+
+/**
+ Array to hold UIViews on which drag view can't be placed
+ 
+ @seealso goodFramesArray, badFramesArray, goodViewsArray
+ */
+
+@property (nonatomic, strong) NSArray *badViewsArray;
 
 /**
  initial frame, set on initialization
@@ -229,6 +250,14 @@ inline CGPoint TKCGRectCenter(CGRect rect);
 - (id)initWithImage:(UIImage *)image 
          startFrame:(CGRect)startFrame 
            endFrame:(CGRect)endFrame;
+
+/**
+ @discusion Initializer for drag views with only one target view
+ */
+
+- (id)initWithImage:(UIImage *)image 
+         startFrame:(CGRect)startFrame 
+         targetView:(UIView *)targetView;
 
 /**
  @discusion Initializer for drag views with only one end frame and delegate

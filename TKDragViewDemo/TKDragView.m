@@ -1,10 +1,11 @@
-//
-//  TKDragView.m
-//  Retail Incentive
-//
-//  Created by Mapedd on 11-05-14.
-//  Copyright 2011 Tomasz Kuzma. All rights reserved.
-//
+//////////////////////////////////////////////////////////////////////////////////////
+//  TKDragView.m                                                                    //
+//  Universal Draggable View                                                        //
+//                                                                                  //
+//  Created by Mapedd on 11-05-14.                                                  //
+//  Modified by Mapedd on 12-07-17                                                  //
+//  Copyright 2011-2012 Tomasz Kuzma (mapedd@mapedd.com). All rights reserved.      //
+//////////////////////////////////////////////////////////////////////////////////////
 
 #import "TKDragView.h"
 
@@ -101,7 +102,11 @@ CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
 
 @synthesize delegate = delegate_;
 
-#pragma mark - Initializers
+@synthesize goodViewsArray =goodViewsArray_;
+
+@synthesize badViewsArray =badViewsArray_;
+
+#pragma mark - Initializers with CGRect and NSValues
 
 - (id)initWithImage:(UIImage *)image 
          startFrame:(CGRect)startFrame 
@@ -147,6 +152,8 @@ CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
     
     self.startFrame = startFrame;
     
+    flags_.wasInitializedWithViews = NO;
+    
     self.imageView = [[UIImageView alloc] initWithFrame:self.bounds];
     [self.imageView setAutoresizingMask:(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight)];
     [self.imageView setImage:image];
@@ -189,6 +196,26 @@ CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
     startLocation = CGPointZero;
     
     self.delegate = delegate;
+    
+    return self;
+}
+
+#pragma mark - Initializers with UIViews
+
+- (id)initWithImage:(UIImage *)image 
+         startFrame:(CGRect)startFrame 
+         targetView:(UIView *)targetView{
+    self = [self initWithImage:image
+                    startFrame:startFrame
+                    goodFrames:nil
+                     badFrames:nil
+                   andDelegate:nil];
+    
+    if(!self)return nil;
+    
+    flags_.wasInitializedWithViews = YES;
+    
+    self.goodViewsArray = [NSArray arrayWithObject:targetView];
     
     return self;
 }
