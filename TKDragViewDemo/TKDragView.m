@@ -17,13 +17,17 @@
 
 #define VELOCITY_PARAMETER 1000.0f
 
-NSValue * TKCGRectValue(CGRect rect){
-    return [NSValue valueWithCGRect:rect];
+@implementation TKCGRect
+
++ (TKCGRect*)from:(CGRect)rect forView:(UIView*)view
+{
+	TKCGRect *r = [TKCGRect new];
+	r.rect = rect;
+	r.parent = view;
+	return r;
 }
 
-CGRect TKCGRectFromValue(NSValue *value){
-    return [value CGRectValue];
-}
+@end
 
 CGPoint TKCGRectCenter(CGRect rect){
     return CGPointMake(CGRectGetMidX(rect), CGRectGetMidY(rect));
@@ -60,6 +64,8 @@ CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
 - (NSTimeInterval)swapToStartAnimationDuration;
 
 - (NSTimeInterval)swapToEndAnimationDurationWithFrame:(CGRect)endFrame;
+
+@property (nonatomic, weak) UIView *startView;
 
 
 @end
@@ -227,6 +233,11 @@ CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
     }
 }
 
+- (UIView*)parentContainer
+{
+	return _parentContainer ? _parentContainer : [self superview];
+}
+
 - (void)setCanUseSameEndFrameManyTimes:(BOOL)canUseSameEndFrameManyTimes{
     canUseSameEndFrameManyTimes_ = canUseSameEndFrameManyTimes;
     
@@ -284,16 +295,24 @@ CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
         
         isDragging_ = YES;
 
-        CGPoint pt = [gestureRecognizer locationInView:self];
-    
+        const CGPoint pt = [gestureRecognizer locationInView:self];
+
         startLocation = pt;
-    
-        [[self superview] bringSubviewToFront:self];
+
+        self.startView = [self superview];
+        self.startFrame = self.frame;
 
         // Displace view to match point as center.
         if (self.dragsAtCenter)
             [self setCenter:CGPointMake(self.frame.origin.x + startLocation.x,
                 self.frame.origin.y + startLocation.y)];
+
+        if (self.startView != [self parentContainer]) {
+            self.frame = [[self superview] convertRect:self.frame toView:[self parentContainer]];
+            [self.parentContainer addSubview:self];
+        }
+
+        [[self parentContainer] bringSubviewToFront:self];
 
         if (delegateFlags_.dragViewDidStartDragging) {
             [self.delegate dragViewDidStartDragging:self];
@@ -308,10 +327,11 @@ CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
         return;
     
         
-    CGPoint pt = [gestureRecognizer locationInView:self];
-    CGPoint translation = [gestureRecognizer translationInView:[self superview]];
-    [self setCenter:CGPointMake([self center].x + translation.x, [self center].y + translation.y)];
-    [gestureRecognizer setTranslation:CGPointZero inView:[self superview]];
+    CGPoint pt = [gestureRecognizer locationInView:[self parentContainer]];
+    CGPoint translation = [gestureRecognizer translationInView:[self parentContainer]];
+    [self setCenter:CGPointMake([self center].x + translation.x,
+								[self center].y + translation.y)];
+    [gestureRecognizer setTranslation:CGPointZero inView:[self parentContainer]];
     
     // Is over start frame
     
@@ -359,7 +379,8 @@ CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
         }
         
         if(!canUseSameEndFrameManyTimes_){
-            CGRect goodFrame = TKCGRectFromValue([self.goodFramesArray objectAtIndex:currentGoodFrameIndex_]);
+            TKCGRect *r = self.goodFramesArray[currentGoodFrameIndex_];
+            CGRect goodFrame = r.rect;
             [[TKDragManager manager] dragView:self didLeaveEndFrame:goodFrame];
         }
         
@@ -379,7 +400,8 @@ CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
         }
         
         if (!canUseSameEndFrameManyTimes_ && isAtEndFrame_) {
-            CGRect rect = TKCGRectFromValue([self.goodFramesArray objectAtIndex:currentGoodFrameIndex_]);
+            TKCGRect *r = self.goodFramesArray[currentGoodFrameIndex_];
+            CGRect rect = r.rect;
             [[TKDragManager manager] dragView:self didLeaveEndFrame:rect];
         }
         
@@ -455,7 +477,8 @@ CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
     
     if (isAtEndFrame_ && !shouldStickToEndFrame_) {
         if(!canUseSameEndFrameManyTimes_) {
-            CGRect goodFrame = TKCGRectFromValue([self.goodFramesArray objectAtIndex:currentGoodFrameIndex_]);
+            TKCGRect *r = self.goodFramesArray[currentGoodFrameIndex_];
+            CGRect goodFrame = r.rect;
             [[TKDragManager manager] dragView:self didLeaveEndFrame:goodFrame];
         }
         
@@ -476,7 +499,8 @@ CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
             }
             else{
                 if (isOverEndFrame_ && !canUseSameEndFrameManyTimes_) {
-                    CGRect goodFrame = TKCGRectFromValue([self.goodFramesArray objectAtIndex:currentGoodFrameIndex_]);
+                    TKCGRect *r = self.goodFramesArray[currentGoodFrameIndex_];
+                    CGRect goodFrame = r.rect;
                     [[TKDragManager manager] dragView:self didLeaveEndFrame:goodFrame];
                 }
                 
@@ -515,42 +539,33 @@ CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
     
 - (BOOL)didEnterStartFrameWithPoint:(CGPoint)point {
     
-    CGPoint touchInSuperview = [self convertPoint:point toView:[self superview]];
+    CGPoint touchInSuperview = [self convertPoint:point toView:[self parentContainer]];
     
     return CGRectContainsPoint(startFrame_,touchInSuperview);
 }
 
 - (NSInteger)badFrameIndexWithPoint:(CGPoint)point{
-    
-    CGPoint touchInSuperview = [self convertPoint:point toView:[self superview]];
-    
-    NSInteger index = -1;
-    
-    
-    
+
     for (int i=0;i<[self.badFramesArray count];i++) {
-        CGRect badFrame = [[self.badFramesArray objectAtIndex:i] CGRectValue];
-            if (CGRectContainsPoint(badFrame, touchInSuperview))
-               index = i;
+        TKCGRect *r = self.badFramesArray[i];
+        const CGRect goodFrame = [[self parentContainer] convertRect:r.rect fromView:r.parent];
+        if (CGRectContainsPoint(goodFrame, point))
+            return i;
     }
     
-    
-    return index;
+    return -1;
 }
 
 - (NSInteger)goodFrameIndexWithPoint:(CGPoint)point{
-    
-    CGPoint touchInSuperview = [self convertPoint:point toView:[self superview]];
-    
-    NSInteger index = -1;
-    
+
     for (int i=0;i<[self.goodFramesArray count];i++) {
-        CGRect goodFrame = [[self.goodFramesArray objectAtIndex:i] CGRectValue];
-        if (CGRectContainsPoint(goodFrame, touchInSuperview))
-            index = i;
+        TKCGRect *r = self.goodFramesArray[i];
+        const CGRect goodFrame = [[self parentContainer] convertRect:r.rect fromView:r.parent];
+        if (CGRectContainsPoint(goodFrame, point))
+            return i;
     }
 
-    return index;
+    return -1;
 }
 
 - (NSTimeInterval)swapToStartAnimationDuration{
@@ -578,6 +593,8 @@ CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
 
 - (void)swapToStartPosition{
     
+    self.frame = [[self parentContainer] convertRect:self.frame toView:self.startView];
+    [self.startView addSubview:self];
     isAnimating_ = YES;
     
     if (delegateFlags_.dragViewWillSwapToStartFrame)
@@ -606,11 +623,21 @@ CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
 }
 
 - (void)swapToEndPositionAtIndex:(NSInteger)index{
+
+    // Define a common action performed when the swap can not happen.
+    void (^abort_swap)(void) = ^{
+        self.frame = [[self parentContainer]
+            convertRect:self.frame toView:self.startView];
+        [self.startView addSubview:self];
+    };
     
-    if (![self.goodFramesArray count]) return;
+    if (![self.goodFramesArray count]) {
+        abort_swap();
+        return;
+    }
     
-    CGRect endFrame = [[self.goodFramesArray objectAtIndex:index] CGRectValue];
-    
+    TKCGRect *r = self.goodFramesArray[index];
+    CGRect endFrame = r.rect;
     
     if (!isAtEndFrame_) {
         if (!canUseSameEndFrameManyTimes_) {
@@ -619,14 +646,17 @@ CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
                 if(delegateFlags_.dragViewDidLeaveGoodFrame){
                     [self.delegate dragViewDidLeaveGoodFrame:self atIndex:index];
                 }
+                abort_swap();
                 return;
             }
         }
     }
     
-    
     isAnimating_ = YES;
     
+    self.frame = [[self parentContainer] convertRect:self.frame toView:r.parent];
+    [r.parent addSubview:self];
+
     if (delegateFlags_.dragViewWillSwapToEndFrame) 
         [self.delegate dragViewWillSwapToEndFrame:self atIndex:index];
     
@@ -699,8 +729,8 @@ static TKDragManager *manager; // it's a singleton, but how to relase it under A
     
     if ([self.managerArray count]) {
         
-            for (NSValue *dragViewValue in dragView.goodFramesArray) {
-                CGRect dragViewRect = TKCGRectFromValue(dragViewValue);
+            for (TKCGRect *dragViewValue in dragView.goodFramesArray) {
+                CGRect dragViewRect = dragViewValue.rect;
                 BOOL isInTheArray = NO;
 
                 for (TKOccupancyIndicator *ind in self.managerArray) {
@@ -728,7 +758,8 @@ static TKDragManager *manager; // it's a singleton, but how to relase it under A
     
     for (int i = 0;i < [framesToAdd count]; i++) {
         
-        CGRect frame = TKCGRectFromValue([framesToAdd objectAtIndex:i]);
+        TKCGRect *r = framesToAdd[i];
+        CGRect frame = r.rect;
         
         TKOccupancyIndicator *ind = [TKOccupancyIndicator indicatorWithFrame:frame];
         
@@ -745,9 +776,9 @@ static TKDragManager *manager; // it's a singleton, but how to relase it under A
         
         CGRect rect = ind.frame;
         
-        for (NSValue *value in dragView.goodFramesArray) {
+        for (TKCGRect *value in dragView.goodFramesArray) {
             
-            CGRect endFrame = TKCGRectFromValue(value);
+            CGRect endFrame = value.rect;
             
             if (CGRectEqualToRect(rect, endFrame)) {
                 ind.count--;

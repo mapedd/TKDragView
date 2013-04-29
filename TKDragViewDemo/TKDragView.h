@@ -15,14 +15,18 @@ typedef BOOL TKVelocity;
 #define kTKDragConstantSpeed NO
 
 /**
- Creates NSValue object holding given CGRect
+ Holds a rectangle position along with the parent container view.
  */
 
-NSValue * TKCGRectValue(CGRect rect);
+@interface TKCGRect : NSObject
 
+@property (nonatomic, weak) UIView *parent;
+@property (nonatomic, assign) CGRect rect;
 
++ (TKCGRect*)from:(CGRect)rect forView:(UIView*)view;
 
-CGRect TKCGRectFromValue(NSValue *value);
+@end
+
 
 /**
  Returns the distance between centers of the two frames
@@ -230,6 +234,9 @@ inline CGPoint TKCGRectCenter(CGRect rect);
  */
 
 @property (nonatomic, weak) id<TKDragViewDelegate> delegate;
+
+// Adds option to specify a different parent than the normal superview.
+@property (nonatomic, weak) UIView *parentContainer;
 
 /**
  @discusion Initializer for drag views with only one end frame
