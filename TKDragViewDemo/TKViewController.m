@@ -92,6 +92,7 @@
                                                       andDelegate:self];
         
         
+        dragView.dragsAtCenter = YES;
         dragView.canDragMultipleDragViewsAtOnce = NO;
         dragView.canUseSameEndFrameManyTimes = NO;
         

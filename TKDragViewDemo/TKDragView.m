@@ -290,6 +290,10 @@ CGFloat TKDistanceBetweenFrames(CGRect rect1, CGRect rect2){
     
         [[self superview] bringSubviewToFront:self];
 
+        // Displace view to match point as center.
+        if (self.dragsAtCenter)
+            [self setCenter:CGPointMake(self.frame.origin.x + startLocation.x,
+                self.frame.origin.y + startLocation.y)];
 
         if (delegateFlags_.dragViewDidStartDragging) {
             [self.delegate dragViewDidStartDragging:self];

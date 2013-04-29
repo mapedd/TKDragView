@@ -62,6 +62,8 @@ inline CGPoint TKCGRectCenter(CGRect rect);
     
     BOOL isAtStartFrame_;
     
+    BOOL dragsAtCenter_;
+    
     BOOL canDragFromEndPosition_;
     
     BOOL canSwapToStartPosition_;
@@ -206,6 +208,13 @@ inline CGPoint TKCGRectCenter(CGRect rect);
  */
 
 @property (nonatomic) TKVelocity usedVelocity ;
+
+/**
+ When set to YES the view's center will translate to the touche's point. This can feel more natural for certain uses, when set to NO the touch position within the view is used for hit testing.
+ Default: NO
+ */
+
+@property (nonatomic) BOOL dragsAtCenter;
 
 /**
  When set to NO, after placing view on the good end frame, drag view cannot be moved at all
