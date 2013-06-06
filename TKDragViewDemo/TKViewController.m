@@ -57,8 +57,8 @@
         
         CGRect badFrame =   CGRectMake(6 + i * 103, 290, 100, 100);
         
-        [goodFrames addObject:TKCGRectValue(endFrame)];
-        [badFrames addObject:TKCGRectValue(badFrame)];
+        [goodFrames addObject:[TKCGRect from:endFrame forView:self.view]];
+        [badFrames addObject:[TKCGRect from:badFrame forView:self.view]];
         
         UIView *endView = [[UIView alloc] initWithFrame:endFrame];
         endView.layer.borderColor = [UIColor greenColor].CGColor;
@@ -92,6 +92,7 @@
                                                       andDelegate:self];
         
         
+        //dragView.dragsAtCenter = YES;
         dragView.canDragMultipleDragViewsAtOnce = NO;
         dragView.canUseSameEndFrameManyTimes = NO;
         

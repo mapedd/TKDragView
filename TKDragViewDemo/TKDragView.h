@@ -15,14 +15,18 @@ typedef BOOL TKVelocity;
 #define kTKDragConstantSpeed NO
 
 /**
- Creates NSValue object holding given CGRect
+ Holds a rectangle position along with the parent container view.
  */
 
-NSValue * TKCGRectValue(CGRect rect);
+@interface TKCGRect : NSObject
 
+@property (nonatomic, weak) UIView *parent;
+@property (nonatomic, assign) CGRect rect;
 
++ (TKCGRect*)from:(CGRect)rect forView:(UIView*)view;
 
-CGRect TKCGRectFromValue(NSValue *value);
+@end
+
 
 /**
  Returns the distance between centers of the two frames
@@ -61,6 +65,8 @@ inline CGPoint TKCGRectCenter(CGRect rect);
     BOOL isAtEndFrame_;
     
     BOOL isAtStartFrame_;
+    
+    BOOL dragsAtCenter_;
     
     BOOL canDragFromEndPosition_;
     
@@ -208,6 +214,13 @@ inline CGPoint TKCGRectCenter(CGRect rect);
 @property (nonatomic) TKVelocity usedVelocity ;
 
 /**
+ When set to YES the view's center will translate to the touche's point. This can feel more natural for certain uses, when set to NO the touch position within the view is used for hit testing.
+ Default: NO
+ */
+
+@property (nonatomic) BOOL dragsAtCenter;
+
+/**
  When set to NO, after placing view on the good end frame, drag view cannot be moved at all
  Default: YES
  */
@@ -221,6 +234,9 @@ inline CGPoint TKCGRectCenter(CGRect rect);
  */
 
 @property (nonatomic, weak) id<TKDragViewDelegate> delegate;
+
+// Adds option to specify a different parent than the normal superview.
+@property (nonatomic, weak) UIView *parentContainer;
 
 /**
  @discusion Initializer for drag views with only one end frame
